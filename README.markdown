@@ -128,8 +128,24 @@ E.g.
 ```
 
 ##Limitations
+
 This module has primarily been developed and tested on CentOS 6. 
 It has also been lightly tested on Debian and Ubuntu, so should support most common Linux distributions. 
+
+ * JMS Setup
+  * RAR adpater installation
+  * create-resource-adapter-config
+  * create-connector-connection-pool 
+  * create-connector-resource
+  * create-admin-object
+ * Automatically wait if restart is in progress
+ * Remove outdated glassfish installations on upgrades
+ * Execution of glassfish::install_jars fails if it exists on initial setup
+ * Initscript
+   * Add command for "asadmin"
+   * do not use "sudo", use 'su -c "<command>" <user>' instead
+ * add complex setups to test framework
+
 
 ##Contributors
 Thanks to the following people who have helped with this module: 
