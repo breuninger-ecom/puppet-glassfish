@@ -1,7 +1,14 @@
 class Puppet::Provider::Asadmin < Puppet::Provider
+
+  # keeps the state of 
+  @@up_and_running = false
   
-  def asadmin_exec(passed_args)
-    
+  def asadmin_exec(passed_args,ignore_previous_check=false)
+
+    if ignore_previous_check == true
+      @@up_and_running = false
+    end
+
     # Use dashost if present
     if @resource.parameters.include?(:dashost)
       host = @resource[:dashost]
@@ -14,6 +21,7 @@ class Puppet::Provider::Asadmin < Puppet::Provider
       port = @resource[:portbase].to_i + 48
     end
 
+
     # Compile an array of command args
     args = Array.new
     args << '--host' << host if host && !host.nil?
@@ -22,12 +30,16 @@ class Puppet::Provider::Asadmin < Puppet::Provider
     # Only add passwordfile if specified
     args << '--passwordfile' << @resource[:passwordfile] if @resource[:passwordfile] and
       not @resource[:passwordfile].empty?
-        
+    
+    wait_for_server_args = args
+
     # Need to add the passed_args to args array.  
     passed_args.each { |arg| args << arg }
     
     # Transform args array into a exec args string.  
     exec_args = args.join " "
+
+
     command = "asadmin #{exec_args}"
     Puppet.debug("asadmin command = #{command}")
     
@@ -37,6 +49,8 @@ class Puppet::Provider::Asadmin < Puppet::Provider
     # Debug output of command if required. 
     Puppet.debug("exec command = #{command}")
     
+    
+    #wait_for_server(wait_for_server_args)
     # Execute the command. 
     output = `#{command}`
     # Check return code and fail if required
@@ -48,6 +62,49 @@ class Puppet::Provider::Asadmin < Puppet::Provider
 
     # Return the result
     result
+  end
+
+  def wait_for_server(args)
+
+   if @@up_and_running == true
+      return true
+   end
+
+   # Get timeout
+   if @resource.parameters.include?(:timeout_seconds)
+     seconds = @resource[:timeout_seconds]
+     Puppet.debug("set #{seconds} seconds")
+   else
+     seconds = 120
+   end
+
+   # Transform args array into a exec args string.  
+   exec_args = args.join " "
+   command = "asadmin #{exec_args}"
+   
+   # Compile the actual command as the specified user. 
+   command = "su - #{@resource[:user]} -c \"#{command} list-domains\"" if @resource[:user]
+   # Debug output of command if required. 
+   Puppet.debug("wait_for_server: exec command = #{command}")
+ 
+   for i in 0..seconds
+      # Execute the command. 
+      output = `#{command}`
+      # Check return code and fail if required
+      self.fail output unless $? == 0
+      
+      # Split into array, for later processing...
+      for line in output.split(/\n/)
+         if line =~ /^[^\s]+\srunning$/
+            Puppet.debug("Up an running")
+            @@up_and_running = true
+            return true
+         end
+      end
+      Puppet.debug(sprintf("Waiting for server %i/%i seconds",i,seconds))
+      sleep(1)
+   end
+   Puppet.debug("wait_for_server: failed - waited more than #{seconds}")
   end
 
   def escape(value)

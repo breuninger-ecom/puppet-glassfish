@@ -34,6 +34,15 @@ Puppet::Type.type(:domain).provide(:asadmin,
     asadmin_exec(args)
   end
 
+
+#  def exists?
+#    asadmin_exec(["get secure-admin.enabled"]).each do |line|
+#      domain = line.split(" ")[0] if line.match(/secure-admin.enabled=true/)
+#      return true if @resource[:name] == domain
+#    end
+#    return false
+#  end
+
   def exists?
     asadmin_exec(["list-domains"]).each do |line|
       domain = line.split(" ")[0] if line.match(/running/) # Glassfish > 3.0.1
