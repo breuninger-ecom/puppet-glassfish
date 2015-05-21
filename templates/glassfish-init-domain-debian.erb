@@ -55,7 +55,7 @@ function procStop() {
 		echo "This script must be run as root" 1>&2
 		exit 1
 	fi
-	log_daemon_msg "Stoping $__NAME"
+	log_daemon_msg "Stopping $__NAME"
 	_isOk=0
 	sudo -u $USER ${GLASSFISHPATH}/asadmin stop-domain > /dev/null
 	if [[ $? -ne 0 ]]; then
