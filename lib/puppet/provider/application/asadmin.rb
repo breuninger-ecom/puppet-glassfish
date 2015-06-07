@@ -29,7 +29,9 @@ Puppet::Provider::Asadmin) do
     args << @resource[:target] if @resource[:target]
 
     asadmin_exec(args).each do |line|
-      return true if @resource[:name] == line.split(" ")[0]
+      if line =~ /^#{@resource[:name]}\s+<ear, ejb, web>/
+         return true
+      end
     end
     return false
   end
