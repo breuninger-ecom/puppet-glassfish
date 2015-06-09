@@ -1,21 +1,16 @@
-Puppet::Type.newtype(:application) do
-  @doc = "Manage applications of Glassfish domains"
+Puppet::Type.newtype(:resourceadapter) do
+  @doc = "Manage resourceadapters of Glassfish domains"
   ensurable
 
   newparam(:name) do
-    desc "The application name."
+    desc "The resourceadapter name."
     isnamevar
 
     validate do |value|
       unless value =~ /^[\w\-\.]+$/
-         raise ArgumentError, "%s is not a valid application name." % value
+         raise ArgumentError, "%s is not a valid resourceadapter name." % value
       end
     end
-  end
-
-  newparam(:contextroot) do
-    desc "The URL context root."
-    #defaultto ""
   end
 
   newparam(:source) do
@@ -86,18 +81,8 @@ Puppet::Type.newtype(:application) do
     self[:user]    
   end
   
-  # Autorequire the source application file
+  # Autorequire the source resourceadapter file
   autorequire(:file) do 
     self[:source]
-  end
-  
-  # Autorequire the domain resource, based on portbase
-  autorequire(:domain) do
-    self.catalog.resources.select { |res|
-      next unless res.type == :domain
-      res if res[:portbase] == self[:portbase]
-    }.collect { |res|
-      res[:name]
-    }
   end
 end
